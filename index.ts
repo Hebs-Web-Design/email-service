@@ -34,6 +34,8 @@ type EmailFieldValidator = {
 }
 
 function dataValid(config: EmailConfig, country: string, formData: FormData) {
+    console.log(config)
+
     if (config.allowed_countries !== undefined) {
         if (!config.allowed_countries.includes(country)) {
             console.log(`The submission came from a country that was not allowed: ${country}`);
@@ -57,16 +59,19 @@ function dataValid(config: EmailConfig, country: string, formData: FormData) {
 
     // make sure all fields are valid using configured validators
     let defaultValidator = config.validations['*'] !== undefined ? config.validations['*'] : 'notblank'
+    console.log(defaultValidator)
     for (const field in config.fields) {
         const value = formData.get(field)
         const validator = config.validations[field] === undefined ? defaultValidator : config.validations[field]
 
+        console.log({ field: field, value: value, validator: validator })
         if (!fieldValid(value, validator)) {
-            console.log(`"${field}" was not valid in form sumbission`);
+            console.log(`"${field}" was not valid in form sumbission`)
             return false
         }
     }
 
+    console.log('Would have been valid but rejecting for testing')
     return true
 }
 
