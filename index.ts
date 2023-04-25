@@ -54,7 +54,7 @@ function dataValid(config: EmailConfig, country: string, formData: FormData) {
     // make sure all fields are valid using configured validators
     let defaultValidator = config.validations['*'] !== undefined ? config.validations['*'] : 'notblank'
     console.log(defaultValidator)
-    for (const field in config.fields) {
+    for (const field of config.fields) {
         const value = formData.get(field)
         const validator = config.validations[field] === undefined ? defaultValidator : config.validations[field]
 
