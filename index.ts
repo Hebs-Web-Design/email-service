@@ -13,14 +13,9 @@ type EmailConfig = {
     honeypot: string
     allowed_countries: string[]
     fields: string[]
-    admin_template: {
-        name: string
-        subject: string
-    }
-    user_template: EmailTemplate,
-    validations: {
-        [index: string]: string | string[]
-    }
+    admin_template: EmailTemplate
+    user_template: EmailTemplate
+    validations: EmailFieldValidatons
 };
 
 type EmailTemplate = {
@@ -28,9 +23,8 @@ type EmailTemplate = {
     subject: string
 }
 
-type EmailFieldValidator = {
-    field: string,
-    validator: string | string[],
+type EmailFieldValidatons = {
+    [index: string]: string | string[]
 }
 
 function dataValid(config: EmailConfig, country: string, formData: FormData) {
@@ -72,7 +66,7 @@ function dataValid(config: EmailConfig, country: string, formData: FormData) {
     }
 
     console.log('Would have been valid but rejecting for testing')
-    return true
+    return false
 }
 
 function fieldValid(value: string, validation: string | string[]) {
