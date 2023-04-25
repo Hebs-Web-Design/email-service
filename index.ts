@@ -28,7 +28,7 @@ type EmailTemplate = {
 
 type EmailFieldValidation = {
     field: string,
-    validator: string,
+    validator: string | string[],
 }
 
 function dataValid(config: EmailConfig, country: string, formData: FormData) {
@@ -54,7 +54,7 @@ function dataValid(config: EmailConfig, country: string, formData: FormData) {
     }
 
     let validators: object
-    let defaultValidator: string
+    let defaultValidator: string | string[]
     for (const v of config.validations) {
         // set default validator
         if (v.field === '*') {
@@ -75,7 +75,7 @@ function dataValid(config: EmailConfig, country: string, formData: FormData) {
     for (const field in config.fields) {
         const value = formData.get(field)
         const validator = validators[field] === undefined ? defaultValidator : validators[field]
-        
+
         if (!fieldValid(value, validator)) {
             console.log(`"${field}" was not valid in form sumbission`);
             return false
@@ -85,18 +85,25 @@ function dataValid(config: EmailConfig, country: string, formData: FormData) {
     return true
 }
 
-function fieldValid(value: string, validation: string) {
-    switch (validation) {
-        case 'blank':
-            return value === ''
-        case 'email':
-            let email_regex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-            return email_regex.test(value)
-        case 'notblank':
-            return value !== ''
-        case 'phone':
-            // TODO: add proper validation of phone
-            return value !== ''
+function fieldValid(value: string, validation: string | string[]) {
+    switch (typeof validation) {
+        case 'string':
+            switch (validation) {
+                case 'blank':
+                    return value === ''
+                case 'email':
+                    let email_regex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+                    return email_regex.test(value)
+                case 'notblank':
+                    return value !== ''
+                case 'phone':
+                    // TODO: add proper validation of phone
+                    return value !== ''
+            }
+            break
+        case 'object':
+            return validation.includes(value)
+
     }
     return false
 }
@@ -177,13 +184,13 @@ export async function HandleOptions(context) {
     if (request.headers.get('Origin') !== null &&
         request.headers.get('Access-Control-Request-Method') !== null &&
         request.headers.get('Access-Control-Request-Headers') !== null) {
-            return new Response(null, {
-                headers: {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                }
-            })
+        return new Response(null, {
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type'
+            }
+        })
     }
 
     // standard OPTIONS request
@@ -228,8 +235,8 @@ export async function HandlePost(context) {
     // set default validation if none exists
     if (config.validations === undefined) {
         config.validations = [
-            {field: '*', validator: 'notblank'},
-            {field: 'email', validator: 'email'}
+            { field: '*', validator: 'notblank' },
+            { field: 'email', validator: 'email' }
         ]
     }
 

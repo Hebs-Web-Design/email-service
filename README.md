@@ -83,3 +83,4 @@ Valid options are:
 * `notblank`: values is not blank
 * `email`: value is an email address (done by regexp)
 * `phone`: value is a phone number (Note: currently same as `notblank`)
+* An array of strings may also be provided, in which case this defines a list of acceptable values
