@@ -81,6 +81,7 @@ Valid options are:
 
 * `blank`: value is blank
 * `notblank`: values is not blank
-* `email`: value is an email address (done by regexp)
-* `phone`: value is a phone number (Note: currently same as `notblank`)
+* `email`: value is an email address (done by regex)
+* `phone`: value is a phone number (done by regex)
+* `regex:REGEX`: value is checked against running a "match" after "new RegExp(REGEX)" is used to generate a regex
 * An array of strings may also be provided, in which case this defines a list of acceptable values
