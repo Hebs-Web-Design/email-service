@@ -64,10 +64,10 @@ This is created in your KV and named as per the `EMAIL_CONFIG` setting:
         "name": "mailgun template for emails to the user",
         "subject": "subject for emails to the user"
     },
-    "validations": [
-        { "field": "*", "validator": "notblank" },
-        { "field": "email", "validator": "email" }
-    ] 
+    "validations": {
+        "*": "notblank",
+        "email": "email"
+    }
 }
 ```
 

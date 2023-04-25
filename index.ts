@@ -18,7 +18,9 @@ type EmailConfig = {
         subject: string
     }
     user_template: EmailTemplate,
-    validations: EmailFieldValidation[]
+    validations: {
+        [index: string]: string | string[]
+    }
 };
 
 type EmailTemplate = {
@@ -26,7 +28,7 @@ type EmailTemplate = {
     subject: string
 }
 
-type EmailFieldValidation = {
+type EmailFieldValidator = {
     field: string,
     validator: string | string[],
 }
@@ -53,28 +55,11 @@ function dataValid(config: EmailConfig, country: string, formData: FormData) {
         }
     }
 
-    let validators: object
-    let defaultValidator: string | string[]
-    for (const v of config.validations) {
-        // set default validator
-        if (v.field === '*') {
-            defaultValidator = v.validator
-            continue
-        }
-
-        // otherwise set specific field validator
-        validators[v.field] = v.validator
-    }
-
-    // use notblank validator by default if none set
-    if (defaultValidator === undefined) {
-        defaultValidator = 'notblank'
-    }
-
     // make sure all fields are valid using configured validators
+    let defaultValidator = config.validations['*'] !== undefined ? config.validations['*'] : 'notblank'
     for (const field in config.fields) {
         const value = formData.get(field)
-        const validator = validators[field] === undefined ? defaultValidator : validators[field]
+        const validator = config.validations[field] === undefined ? defaultValidator : config.validations[field]
 
         if (!fieldValid(value, validator)) {
             console.log(`"${field}" was not valid in form sumbission`);
@@ -234,10 +219,15 @@ export async function HandlePost(context) {
 
     // set default validation if none exists
     if (config.validations === undefined) {
-        config.validations = [
-            { field: '*', validator: 'notblank' },
-            { field: 'email', validator: 'email' }
-        ]
+        config.validations = {
+            '*': 'notblank',
+            'email': 'email'
+        }
+    }
+
+    // set default valdator if not set
+    if (config.validations['*'] === undefined) {
+        config.validations['*'] = 'notblank'
     }
 
     // key to save form submission
