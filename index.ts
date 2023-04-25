@@ -86,7 +86,7 @@ function fieldValid(value: string, validation: string | string[]) {
                         return value !== '' && value !== null && value != undefined
                     case 'phone':
                         // test phone via regex
-                        const ph = /[0-9]{4}[\- ][0-9]{3}[\- ][0-9]{3}|[0-9]{10}/
+                        const ph = /^[0-9]{4}[\- ][0-9]{3}[\- ][0-9]{3}$|^[0-9]{10}$|^\+[1-9][0-9]{10}$/
                         return ph.test(value)
                 }
             }
