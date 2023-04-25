@@ -70,6 +70,11 @@ function dataValid(config: EmailConfig, country: string, formData: FormData) {
 function fieldValid(value: string, validation: string | string[]) {
     switch (typeof validation) {
         case 'string':
+            if (validation.hasPrefix('regex:')) {
+ const reString = validation.slice(6)
+ const re = new RegExp(reString)
+ return re.test(value)
+           } else {
             switch (validation) {
                 case 'blank':
                     return value === ''
@@ -85,6 +90,7 @@ function fieldValid(value: string, validation: string | string[]) {
                     const re = /[0-9]{4}[\- ][0-9]{3}[\- ][0-9]{3}|[0-9]{10}/
                     return re.test(value)
             }
+}
             break
         case 'object':
             return validation.includes(value)
