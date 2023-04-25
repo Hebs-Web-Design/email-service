@@ -2,6 +2,11 @@
     "name": "email-service",
     "version": "1.0.0",
     "author": "Andrew Heberle <andrew.heberle@gmail.com>",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "github:Hebs-Web-Design/email-service"
+    },
     "devDependencies": {
         "@cloudflare/workers-types": "^4.20230404.0"
     }
