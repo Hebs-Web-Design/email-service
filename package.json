@@ -1,5 +1,8 @@
 {
     "name": "email-service",
     "version": "1.0.0",
-    "author": "Andrew Heberle <andrew.heberle@gmail.com>"
-  }
+    "author": "Andrew Heberle <andrew.heberle@gmail.com>",
+    "devDependencies": {
+        "@cloudflare/workers-types": "^4.20230404.0"
+    }
+}

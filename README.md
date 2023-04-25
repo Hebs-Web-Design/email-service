@@ -8,6 +8,8 @@ This is a module for use in a Cloudflare Pages Function to handle a form submiss
 
 You will need to set up a verified domain in Mailgun and create a sending API key.
 
+In addition you will need to configure one or more email templates to use for the admin/user emails.
+
 ### Set up your Function
 
 ```ts
@@ -61,7 +63,23 @@ This is created in your KV and named as per the `EMAIL_CONFIG` setting:
     "user_template": {
         "name": "mailgun template for emails to the user",
         "subject": "subject for emails to the user"
-    }
+    },
+    "validations": [
+        { "field": "*", "validator": "notblank" },
+        { "field": "email", "validator": "email" }
+    ] 
 }
 ```
 
+#### Validations
+
+The validations array allows specific validation functions to be used on fields along with a wildcard (defaults to 'notblank').
+
+The values in the example config above is the default.
+
+Valid options are:
+
+* `blank`: value is blank
+* `notblank`: values is not blank
+* `email`: value is an email address (done by regexp)
+* `phone`: value is a phone number (Note: currently same as `notblank`)

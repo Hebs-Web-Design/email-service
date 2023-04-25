@@ -17,11 +17,19 @@ type EmailConfig = {
         name: string
         subject: string
     }
-    user_template: {
-        name: string
-        subject: string
-    }
+    user_template: EmailTemplate,
+    validations: EmailFieldValidation[]
 };
+
+type EmailTemplate = {
+    name: string
+    subject: string
+}
+
+type EmailFieldValidation = {
+    field: string,
+    validator: string,
+}
 
 function dataValid(config: EmailConfig, country: string, formData: FormData) {
     if (config.allowed_countries !== undefined) {
@@ -45,25 +53,52 @@ function dataValid(config: EmailConfig, country: string, formData: FormData) {
         }
     }
 
-    // make sure all required fields are there
-    for (const field in config.fields) {
-        let value = formData.get(field)
-        if (value === '') {
-            console.log(`"${field}" was not set in form sumbission`);
-            return false
+    let validators: object
+    let defaultValidator: string
+    for (const v of config.validations) {
+        // set default validator
+        if (v.field === '*') {
+            defaultValidator = v.validator
+            continue
         }
 
-        if (field === 'email') {
-            // validate email
-            let email_regex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-            if (!email_regex.test(value.toString())) {
-                console.log(`"${field}" was not valid in form sumbission`);
-                return false
-            }
+        // otherwise set specific field validator
+        validators[v.field] = v.validator
+    }
+
+    // use notblank validator by default if none set
+    if (defaultValidator === undefined) {
+        defaultValidator = 'notblank'
+    }
+
+    // make sure all fields are valid using configured validators
+    for (const field in config.fields) {
+        const value = formData.get(field)
+        const validator = validators[field] === undefined ? defaultValidator : validators[field]
+        
+        if (!fieldValid(value, validator)) {
+            console.log(`"${field}" was not valid in form sumbission`);
+            return false
         }
     }
 
     return true
+}
+
+function fieldValid(value: string, validation: string) {
+    switch (validation) {
+        case 'blank':
+            return value === ''
+        case 'email':
+            let email_regex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+            return email_regex.test(value)
+        case 'notblank':
+            return value !== ''
+        case 'phone':
+            // TODO: add proper validation of phone
+            return value !== ''
+    }
+    return false
 }
 
 function generateUserData(config: EmailConfig, formData: FormData) {
@@ -188,6 +223,14 @@ export async function HandlePost(context) {
         let message = `There was a problem getting config ("${configName}"): ${err}`
         console.log(message)
         return JSONResponse(message, 500)
+    }
+
+    // set default validation if none exists
+    if (config.validations === undefined) {
+        config.validations = [
+            {field: '*', validator: 'notblank'},
+            {field: 'email', validator: 'email'}
+        ]
     }
 
     // key to save form submission
