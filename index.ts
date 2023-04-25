@@ -75,14 +75,15 @@ function fieldValid(value: string, validation: string | string[]) {
                     return value === ''
                 case 'email':
                     // check for valid email via regex
-                    let email_regex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-                    return email_regex.test(value)
+                    const re = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
+                    return re.test(value)
                 case 'notblank':
                     // ensure not blank and also not null or undefined
                     return value !== '' && value !== null && value != undefined
                 case 'phone':
-                    // TODO: add proper validation of phone
-                    return value !== '' && value !== null && value != undefined
+                    // test phone via regex
+                    const re = /[0-9]{4}[\- ][0-9]{3}[\- ][0-9]{3}|[0-9]{10}/
+                    return re.test(value)
             }
             break
         case 'object':
