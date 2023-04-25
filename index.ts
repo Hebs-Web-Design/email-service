@@ -70,27 +70,26 @@ function dataValid(config: EmailConfig, country: string, formData: FormData) {
 function fieldValid(value: string, validation: string | string[]) {
     switch (typeof validation) {
         case 'string':
-            if (validation.hasPrefix('regex:')) {
- const reString = validation.slice(6)
- const re = new RegExp(reString)
- return re.test(value)
-           } else {
-            switch (validation) {
-                case 'blank':
-                    return value === ''
-                case 'email':
-                    // check for valid email via regex
-                    const re = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
-                    return re.test(value)
-                case 'notblank':
-                    // ensure not blank and also not null or undefined
-                    return value !== '' && value !== null && value != undefined
-                case 'phone':
-                    // test phone via regex
-                    const re = /[0-9]{4}[\- ][0-9]{3}[\- ][0-9]{3}|[0-9]{10}/
-                    return re.test(value)
+            if (validation.startsWith('regex:')) {
+                const re = new RegExp(validation.slice('regex:'.length))
+                return re.test(value)
+            } else {
+                switch (validation) {
+                    case 'blank':
+                        return value === ''
+                    case 'email':
+                        // check for valid email via regex
+                        const re = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
+                        return re.test(value)
+                    case 'notblank':
+                        // ensure not blank and also not null or undefined
+                        return value !== '' && value !== null && value != undefined
+                    case 'phone':
+                        // test phone via regex
+                        const re = /[0-9]{4}[\- ][0-9]{3}[\- ][0-9]{3}|[0-9]{10}/
+                        return re.test(value)
+                }
             }
-}
             break
         case 'object':
             return validation.includes(value)

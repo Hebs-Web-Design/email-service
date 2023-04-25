@@ -1,6 +1,6 @@
 {
     "name": "email-service",
-    "version": "0.8.4",
+    "version": "0.8.5",
     "author": "Andrew Heberle <andrew.heberle@gmail.com>",
     "description": "Handle form submissions via Cloudflare Pages using a Pages Function",
     "license": "MIT",
