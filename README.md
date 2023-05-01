@@ -2,6 +2,12 @@
 
 This is a module for use in a Cloudflare Pages Function to handle a form submission and send it via Mailgun.
 
+## Installation
+
+```sh
+npm install -D github:Hebs-Web-Design/email-service#semver:VERSION
+```
+
 ## Usage
 
 ### Set up Mailgun
@@ -13,7 +19,7 @@ In addition you will need to configure one or more email templates to use for th
 ### Set up your Function
 
 ```ts
-import { HandleOptions, HandlePost } from 'hebs-web-design/email-service'
+import { HandleOptions, HandlePost } from 'email-service'
 
 interface Env {
     KV: KVNamespace
