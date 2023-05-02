@@ -249,25 +249,7 @@ export async function HandlePost(context) {
         return JSONResponse(message, 400)
     }
 
-    // Send user email
-    try {
-        await mailgunSend(config, generateUserData(config, formData))
-    } catch (err) {
-        let message = `There was a problem sending user email: ${err}`
-        console.log(message)
-        return JSONResponse(message, 500)
-    }
-
-    // Send admin email
-    try {
-        await mailgunSend(config, generateAdminData(config, formData))
-    } catch (err) {
-        let message = `There was a problem sending admin email: ${err}`
-        console.log(message)
-        return JSONResponse(message, 500)
-    }
-
-    // save to KV
+    // save to KV first
     try {
         // add ip and county to formdata
         formData.append('ip', context.request.headers.get('cf-connecting-ip'))
@@ -283,6 +265,32 @@ export async function HandlePost(context) {
         await context.env.KV.put(key, JSON.stringify(Object.fromEntries(formData)))
     } catch (err) {
         let message = `There was a problem saving the form data: ${err}`
+        console.log(message)
+        return JSONResponse(message, 500)
+    }
+
+    // Send user email
+    try {
+        const response = await mailgunSend(config, generateUserData(config, formData))
+
+        if (!response.ok) {
+            throw 'response not OK'
+        }
+    } catch (err) {
+        let message = `There was a problem sending user email: ${err}`
+        console.log(message)
+        return JSONResponse(message, 500)
+    }
+
+    // Send admin email
+    try {
+        const response = await mailgunSend(config, generateAdminData(config, formData))
+
+        if (!response.ok) {
+            throw 'response not OK'
+        }
+    } catch (err) {
+        let message = `There was a problem sending admin email: ${err}`
         console.log(message)
         return JSONResponse(message, 500)
     }
