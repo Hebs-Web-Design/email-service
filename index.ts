@@ -1,8 +1,3 @@
-const urlfy = obj =>
-    Object.keys(obj)
-        .map(k => encodeURIComponent(k) + "=" + encodeURIComponent(obj[k]))
-        .join("&");
-
 type EmailConfig = {
     prefix: string
     from: string
@@ -276,7 +271,8 @@ export async function HandlePost(context) {
         const response = await mailgunSend(config, generateUserData(config, formData))
 
         if (!response.ok) {
-            throw 'response not OK'
+            const json = await response.json()
+            throw json.message ?? 'unknown mailgun api error'
         }
     } catch (err) {
         let message = `There was a problem sending user email: ${err}`
@@ -289,7 +285,8 @@ export async function HandlePost(context) {
         const response = await mailgunSend(config, generateAdminData(config, formData))
 
         if (!response.ok) {
-            throw 'response not OK'
+            const json = await response.json()
+            throw json.message ?? 'unknown mailgun api error'
         }
     } catch (err) {
         let message = `There was a problem sending admin email: ${err}`
