@@ -93,15 +93,7 @@ function fieldValid(value: string, validation: string | string[]) {
     return false
 }
 
-function generateUserData(config: EmailConfig, formData: FormData) {
-    return generateData(config, formData, true)
-}
-
-function generateAdminData(config: EmailConfig, formData: FormData) {
-    return generateData(config, formData, false)
-}
-
-function generateData(config: EmailConfig, formData: FormData, user: Boolean = false) {
+async function mailgunSend(config: EmailConfig, formData: FormData, user: Boolean = false) {
     const org = config.org
     const to = user ? `${formData.get('name')} <${formData.get('email')}>` : config.admin_email
     const from = `${config.org} <${config.from}>`
@@ -116,28 +108,14 @@ function generateData(config: EmailConfig, formData: FormData, user: Boolean = f
         variables[field] = formData.get(field)
     }
 
-    const data = {
-        to: to,
-        from: from,
-        subject: subject,
-        template: template,
-        variables: JSON.stringify(variables),
-        replyto: replyTo,
-    };
-
-    return data;
-}
-
-async function mailgunSend(config: EmailConfig, data) {
-    const body = new FormData()
-
-    // add data
-    body.append('from', data.from)
-    body.append('to', data.to)
-    body.append('subject', data.subject)
-    body.append('template', data.template)
-    body.append('t:variables', data.variables)
-    body.append('h:Reply-To', data.replyto)
+    // add data to body
+    const body = new URLSearchParams()
+    body.append('from', from)
+    body.append('to', to)
+    body.append('subject', subject)
+    body.append('template', template)
+    body.append('t:variables', JSON.stringify(variables))
+    body.append('h:Reply-To', replyTo)
     
     // create request
     const request = {
@@ -277,7 +255,7 @@ export async function HandlePost(context) {
 
     // Send user email
     try {
-        const response = await mailgunSend(config, generateUserData(config, formData))
+        const response = await mailgunSend(config, formData, true)
 
         if (!response.ok) {
             const json = await response.json()
@@ -291,7 +269,7 @@ export async function HandlePost(context) {
 
     // Send admin email
     try {
-        const response = await mailgunSend(config, generateAdminData(config, formData))
+        const response = await mailgunSend(config, formData, false)
 
         if (!response.ok) {
             const json = await response.json()
