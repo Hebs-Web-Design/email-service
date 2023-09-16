@@ -121,8 +121,8 @@ function generateData(config: EmailConfig, formData: FormData, user: Boolean = f
         from: from,
         subject: subject,
         template: template,
-        't:variables': JSON.stringify(variables),
-        'h:Reply-To': replyTo,
+        variables: JSON.stringify(variables),
+        replyto: replyTo,
     };
 
     return data;
@@ -130,7 +130,16 @@ function generateData(config: EmailConfig, formData: FormData, user: Boolean = f
 
 async function mailgunSend(config: EmailConfig, data) {
     const body = new FormData()
-    Object.entries(data).forEach(([key, value]) => body.append(key, value))
+
+    // add data
+    body.append('from', data.from)
+    body.append('to', data.to)
+    body.append('subject', data.subject)
+    body.append('template', data.template)
+    body.append('t:variables', data.variables)
+    body.append('h:Reply-To', data.replyto)
+    
+    // create request
     const request = {
         method: "POST",
         headers: {
@@ -140,6 +149,7 @@ async function mailgunSend(config: EmailConfig, data) {
         body: body.toString()
     }
     
+    // perform request
     return await fetch(`https://api.mailgun.net/v3/${config.mailgun_domain}/messages`, request)
 }
 
