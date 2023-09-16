@@ -134,17 +134,19 @@ function generateData(config: EmailConfig, formData: FormData, user: Boolean = f
 }
 
 async function mailgunSend(config: EmailConfig, data) {
-    const opts = {
+    const body = new FormData()
+    Object.entries(data).forEach(([key, value]) => body.append(key, value))
+    const request = {
         method: "POST",
         headers: {
             Authorization: "Basic " + btoa("api:" + config.mailgun_key),
             "Content-Type": "application/x-www-form-urlencoded",
-            "Content-Length": Object.keys(data).length.toString()
+            "Content-Length": body.toString().length.toString()
         },
-        body: urlfy(data)
+        body: body.toString()
     }
-
-    return await fetch(`https://api.mailgun.net/v3/${config.mailgun_domain}/messages`, opts)
+    
+    return await fetch(`https://api.mailgun.net/v3/${config.mailgun_domain}/messages`, request)
 }
 
 // Helper function to return JSON response
