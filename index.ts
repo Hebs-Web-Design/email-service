@@ -135,8 +135,7 @@ async function mailgunSend(config: EmailConfig, data) {
         method: "POST",
         headers: {
             Authorization: "Basic " + btoa("api:" + config.mailgun_key),
-            "Content-Type": "application/x-www-form-urlencoded",
-            "Content-Length": body.toString().length.toString()
+            "Content-Type": "application/x-www-form-urlencoded"
         },
         body: body.toString()
     }
