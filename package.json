@@ -6,6 +6,6 @@
     "license": "MIT",
     "repository": "github:Hebs-Web-Design/email-service",
     "devDependencies": {
-        "@cloudflare/workers-types": "^4.20230922.0"
+        "@cloudflare/workers-types": "^4.20231016.0"
     }
 }
