@@ -22,6 +22,11 @@ type EmailFieldValidatons = {
     [index: string]: string | string[]
 }
 
+type MailgunResponse = {
+    message: string
+    id: string
+}
+
 function dataValid(config: EmailConfig, country: string, formData: FormData) {
     // check country is valid
     if (config.allowed_countries !== undefined) {
@@ -93,7 +98,7 @@ function fieldValid(value: string, validation: string | string[]) {
     return false
 }
 
-async function mailgunSend(config: EmailConfig, formData: FormData, user: Boolean = false) {
+async function mailgunSend(config: EmailConfig, formData: FormData, user: Boolean = false):Promise<Response> {
     const org = config.org
     const to = user ? `${formData.get('name')} <${formData.get('email')}>` : config.admin_email
     const from = `${config.org} <${config.from}>`
@@ -258,7 +263,7 @@ export async function HandlePost(context) {
         const response = await mailgunSend(config, formData, true)
 
         if (!response.ok) {
-            const json = await response.json()
+            const json:MailgunResponse = await response.json()
             throw json.message ?? 'unknown mailgun api error'
         }
     } catch (err) {
@@ -272,7 +277,7 @@ export async function HandlePost(context) {
         const response = await mailgunSend(config, formData, false)
 
         if (!response.ok) {
-            const json = await response.json()
+            const json:MailgunResponse = await response.json()
             throw json.message ?? 'unknown mailgun api error'
         }
     } catch (err) {
