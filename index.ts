@@ -217,7 +217,7 @@ export async function HandlePost(context: EventContext<Env, null, null>) {
 
         if (!outcome.success) {
             let message = `Invalid turnstile response`
-            console.log(message)
+            console.log(message, outcome["error-codes"])
             return JSONResponse(message, 400)
         }
    }
