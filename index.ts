@@ -27,6 +27,13 @@ type MailgunResponse = {
     id: string
 }
 
+interface Env {
+	KV: KVNamespace;
+    PROJECT_NAME: string
+    TURNSTILE_SECRET_KEY: string
+    EMAIL_CONFIG: string
+}
+
 function dataValid(config: EmailConfig, country: string, formData: FormData) {
     // check country is valid
     if (config.allowed_countries !== undefined) {
@@ -156,7 +163,7 @@ const JSONResponse = (message, status = 200) => {
     return new Response(JSON.stringify(response), headers);
 };
 
-export async function HandleOptions(context) {
+export async function HandleOptions(context: EventContext<Env, null, null>) {
     const request = context.request
 
     // CORS request
@@ -180,8 +187,7 @@ export async function HandleOptions(context) {
     });
 }
 
-
-export async function HandlePost(context) {
+export async function HandlePost(context: EventContext<Env, null, null>) {
     // reject for pages.dev.domain
     if (context.request.headers.get('host') === `${context.env.PROJECT_NAME}.pages.dev`) {
         return JSONResponse('Not Found', 404)
@@ -199,6 +205,22 @@ export async function HandlePost(context) {
         console.log(message)
         return JSONResponse(message, 500)
     }
+
+    // get ip and country for later
+    const ip = context.request.headers.get('cf-connecting-ip')
+    const country = context.request.headers.get('cf-ipcountry')
+
+    // verify turnstyle
+    if (context.env.TURNSTILE_SECRET_KEY !== undefined) {
+        const token = formData.get('cf-turnstile-response')
+        const outcome = await turnstileOutcome(context.env.TURNSTILE_SECRET_KEY, token, ip)
+
+        if (!outcome.success) {
+            let message = `Invalid turnstile response`
+            console.log(message)
+            return JSONResponse(message, 400)
+        }
+   }
 
     // grab config
     let config: EmailConfig
@@ -228,9 +250,6 @@ export async function HandlePost(context) {
     const prefix = config.prefix !== undefined ? config.prefix : 'submission'
     const key = `${prefix}:${new Date().toISOString()}`
 
-    // grab country from headers
-    let country = context.request.headers.get('cf-ipcountry')
-
     // validate data
     if (!dataValid(config, country, formData)) {
         let message = `Data validation failed`
@@ -241,7 +260,7 @@ export async function HandlePost(context) {
     // save to KV first
     try {
         // add ip and county to formdata
-        formData.append('ip', context.request.headers.get('cf-connecting-ip'))
+        formData.append('ip', ip)
         formData.append('country', country)
 
         // add threat_score header if it exists
@@ -287,4 +306,30 @@ export async function HandlePost(context) {
     }
 
     return JSONResponse(`Form submission OK`, 200)
+}
+
+type TurnstileResponse = {
+    success: boolean
+    challenge_ts: string
+    hostname: string
+    'error-codes': string[]
+    action: string
+    cdata: String
+}
+
+async function turnstileOutcome(secret: string, token: string, ip: string) {
+    let formData = new FormData();
+	formData.append('secret', secret);
+	formData.append('response', token);
+	formData.append('remoteip', ip);
+
+    const url = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+	const result = await fetch(url, {
+		body: formData,
+		method: 'POST',
+	});
+
+    const outcome:TurnstileResponse = await result.json();
+
+    return outcome;
 }
