@@ -2,14 +2,15 @@ type EmailConfig = {
     prefix: string
     from: string
     org: string
-    admin_email: string
-    mailgun_domain: string
-    mailgun_key: string
+    skipEmail?: boolean
+    admin_email?: string
+    mailgun_domain?: string
+    mailgun_key?: string
     honeypot: string
     allowed_countries: string[]
     fields: string[]
-    admin_template: EmailTemplate
-    user_template: EmailTemplate
+    admin_template?: EmailTemplate
+    user_template?: EmailTemplate
     validations: EmailFieldValidatons
 };
 
@@ -275,6 +276,13 @@ export async function HandlePost(context: EventContext<Env, null, null>) {
         let message = `There was a problem saving the form data: ${err}`
         console.log(message)
         return JSONResponse(message, 500)
+    }
+    
+    // Skip emailing if set
+    if (config.skipEmail !== undefined) {
+        if (config.skipEmail) {
+            return JSONResponse(`Form submission OK`, 200)
+        }
     }
 
     // Send user email
